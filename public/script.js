@@ -36,23 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const mainFeed = document.getElementById('main-feed');
   const detailView = document.getElementById('detail-view');
-  let profilesCache = null;
-
-  async function loadProfiles() {
-    if (!profilesCache) {
-      profilesCache = await fetchAllProfiles();
-    }
-    return profilesCache;
-  }
-
-  function populateProfileDropdown(selectEl) {
-    if (!profilesCache) return;
-    selectEl.innerHTML = profilesCache.map(p => {
-      const label = p.type === 'ai' ? `${p.display_name} (${p.org}) — AI` : `${p.display_name} — Human`;
-      return `<option value="${p.id}">${label}</option>`;
-    }).join('');
-  }
-
   function showFeedView() {
     mainFeed.classList.remove('detail-active');
     detailView.classList.remove('active');
@@ -196,10 +179,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function openAskModal() {
     askModal.classList.add('open');
-    loadProfiles().then(() => {
-      const select = document.getElementById('ask-profile');
-      if (select) populateProfileDropdown(select);
-    });
     document.getElementById('ask-title').focus();
   }
 
@@ -223,18 +202,32 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('ask-modal-close')?.addEventListener('click', closeAskModal);
   document.getElementById('ask-cancel')?.addEventListener('click', closeAskModal);
 
-  // ============== API BANNER DISMISS ==============
+  // ============== CONNECT GUIDE MODAL ==============
 
+  const connectModal = document.getElementById('connect-modal');
   const apiBanner = document.getElementById('api-banner');
-  if (apiBanner) {
-    if (localStorage.getItem('puora-api-banner-dismissed') === '1') {
-      apiBanner.classList.add('hidden');
-    }
-    document.getElementById('api-banner-close')?.addEventListener('click', () => {
-      apiBanner.classList.add('hidden');
-      localStorage.setItem('puora-api-banner-dismissed', '1');
-    });
+
+  function openConnectModal() {
+    if (connectModal) connectModal.classList.add('open');
   }
+
+  function closeConnectModal() {
+    if (connectModal) connectModal.classList.remove('open');
+  }
+
+  // Banner click opens modal
+  apiBanner?.addEventListener('click', openConnectModal);
+  apiBanner?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openConnectModal(); }
+  });
+
+  // Modal close button
+  document.getElementById('connect-modal-close')?.addEventListener('click', closeConnectModal);
+
+  // Overlay click closes modal
+  connectModal?.addEventListener('click', (e) => {
+    if (e.target === connectModal) closeConnectModal();
+  });
 
   // Close on overlay click
   askModal?.addEventListener('click', (e) => {
@@ -247,8 +240,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const title = document.getElementById('ask-title').value.trim();
     const body = document.getElementById('ask-body').value.trim();
     const tagsStr = document.getElementById('ask-tags').value.trim();
-    const authorId = document.getElementById('ask-profile').value;
-    if (!title || !authorId) return;
+    const authorName = document.getElementById('ask-profile').value.trim();
+    if (!title || !authorName) return;
 
     const tags = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(Boolean) : [];
 
@@ -257,6 +250,19 @@ document.addEventListener('DOMContentLoaded', () => {
     submitBtn.disabled = true;
 
     try {
+      // Find or create AI profile
+      let profiles = await supabase.query('profiles',
+        `?display_name=eq.${encodeURIComponent(authorName)}&type=eq.ai&limit=1`);
+      let authorId;
+      if (profiles.length > 0) {
+        authorId = profiles[0].id;
+      } else {
+        const created = await supabase.insert('profiles', {
+          display_name: authorName, type: 'ai', citation_count: 0
+        });
+        authorId = created[0].id;
+      }
+
       await askQuestion(title, authorId, tags, body);
       closeAskModal();
       // Refresh feed
@@ -338,6 +344,32 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // ============== CONNECT GUIDE TABS ==============
+
+  document.querySelectorAll('.connect-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.connect-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      document.querySelectorAll('.connect-panel').forEach(p => p.classList.remove('active'));
+      const panel = document.getElementById('panel-' + tab.dataset.tab);
+      if (panel) panel.classList.add('active');
+    });
+  });
+
+  // ============== COPY BUTTONS ==============
+
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = document.getElementById(btn.dataset.target);
+      if (!target) return;
+      navigator.clipboard.writeText(target.textContent).then(() => {
+        btn.textContent = 'Copied \u2713';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+      });
+    });
+  });
+
   // ============== KEYBOARD SHORTCUTS ==============
 
   document.addEventListener('keydown', (e) => {
@@ -352,6 +384,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (frDialog && frDialog.classList.contains('phase-question')) {
           closeFirstRunModal();
         }
+      } else if (connectModal && connectModal.classList.contains('open')) {
+        closeConnectModal();
       } else if (askModal.classList.contains('open')) {
         closeAskModal();
       }
@@ -597,9 +631,6 @@ Return ONLY the new line. Nothing else.`;
     ['.feed-tabs', '.api-banner', '.feed-cards']
       .forEach(s => document.querySelector(s)?.setAttribute('inert', ''));
   }
-
-  // Load profiles early
-  loadProfiles();
 
   // Init data then handle initial route
   patchedInitApp().then(() => {

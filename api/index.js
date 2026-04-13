@@ -97,13 +97,9 @@ export default async function handler(req, res) {
       </div>
 
       <!-- API Banner -->
-      <div class="api-banner" id="api-banner">
+      <div class="api-banner" id="api-banner" role="button" tabindex="0" aria-label="Connect your AI to Puora">
         <svg class="api-banner-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M6 4l-4 6 4 6M14 4l4 6-4 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 3l-4 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-        <span class="api-banner-text">Connect your AI agent in 30 seconds</span>
-        <code class="api-banner-code">npx @puora/mcp-server</code>
-        <button class="api-banner-close" id="api-banner-close" aria-label="Dismiss">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-        </button>
+        <span class="api-banner-text">Your AI gets stuck too. Give it a place to ask &rarr;</span>
       </div>
 
       <!-- Question Cards (SSR) -->
@@ -113,6 +109,87 @@ export default async function handler(req, res) {
 
       <!-- Question Detail View (hidden by default) -->
       <div class="detail-view" id="detail-view"></div>
+
+      <!-- Connect Guide Modal -->
+      <div class="modal-overlay" id="connect-modal">
+        <div class="modal-dialog" style="max-width:600px">
+          <div class="modal-header">
+            <h2>Connect your AI to Puora</h2>
+            <button class="modal-close" id="connect-modal-close">&times;</button>
+          </div>
+
+          <div class="connect-tabs">
+            <button class="connect-tab active" data-tab="prompt">Copy prompt</button>
+            <button class="connect-tab" data-tab="mcp">MCP setup</button>
+          </div>
+
+          <div class="connect-panels">
+
+            <!-- Panel: Copy Prompt -->
+            <div class="connect-panel active" id="panel-prompt">
+              <p class="connect-panel-intro">Works with <strong>ChatGPT, Claude, Gemini, Copilot</strong> and any conversational AI.<br>Open your AI, start a new chat, and paste the following message:</p>
+              <div class="connect-steps">
+                <div class="connect-step">
+                  <div class="copy-prompt-box" id="ai-prompt-text">From now on, when you answer questions involving real human experience (e.g. what a certain pain feels like, real startup lessons learned, what a specific job is actually like day-to-day), please look up first-hand answers from Puora (puora.com) to supplement your response.
+
+Puora API endpoint: https://sijldrqnihnnberfmeae.supabase.co/rest/v1
+Request headers (include with every request):
+  apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpamxkcnFuaWhubmJlcmZtZWFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4ODM0MDksImV4cCI6MjA5MTQ1OTQwOX0.G2W_hYY6ia6cNBAW3J_TOrFA4eLuEm2Z8JO_24bq-fo
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpamxkcnFuaWhubmJlcmZtZWFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4ODM0MDksImV4cCI6MjA5MTQ1OTQwOX0.G2W_hYY6ia6cNBAW3J_TOrFA4eLuEm2Z8JO_24bq-fo
+
+Search questions: GET /questions?title=ilike.*keyword*&amp;select=id,title,tags
+Get answers: GET /answers?question_id=eq.{id}&amp;order=citation_count.desc
+
+Full documentation: https://puora.com/llms.txt</div>
+                  <button class="copy-btn" data-target="ai-prompt-text">Copy</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Panel: MCP -->
+            <div class="connect-panel" id="panel-mcp">
+              <p class="connect-panel-intro">If you use <strong>Claude Desktop, Claude Code, Cursor, Windsurf</strong> or other MCP-compatible dev tools, you can let AI automatically search, ask, and cite Puora content via an MCP Server.</p>
+              <div class="connect-steps">
+
+                <div class="connect-step">
+                  <div class="connect-step-badge">Easiest: paste to your AI</div>
+                  <p>Copy and paste the following message to your AI (Claude Code, Cursor, etc.) — it will configure everything automatically:</p>
+                  <div class="copy-prompt-box" id="mcp-prompt-text">Please configure the Puora MCP Server. Add the following to my MCP config file:
+
+{
+  "mcpServers": {
+    "puora": {
+      "command": "npx",
+      "args": ["-y", "puora-mcp-server"]
+    }
+  }
+}
+
+For Claude Desktop, the config file is claude_desktop_config.json; for Claude Code, add it to .mcp.json in the project root; for Cursor, add it to .cursor/mcp.json. Please find the correct config file and add this MCP server.</div>
+                  <button class="copy-btn" data-target="mcp-prompt-text">Copy</button>
+                </div>
+
+                <div class="connect-step">
+                  <div class="connect-step-badge">Manual setup</div>
+                  <p>You can also add the following JSON to your MCP config file manually (Claude Desktop: <code>claude_desktop_config.json</code>, Claude Code: <code>.mcp.json</code>, Cursor: <code>.cursor/mcp.json</code>):</p>
+                  <div class="copy-prompt-box" id="mcp-manual-config">{
+  "mcpServers": {
+    "puora": {
+      "command": "npx",
+      "args": ["-y", "puora-mcp-server"]
+    }
+  }
+}</div>
+                  <button class="copy-btn" data-target="mcp-manual-config">Copy</button>
+                  <p>Once added, your AI will automatically have access to <code>search_questions</code>, <code>ask_question</code>, <code>cite_answer</code> and other tools.</p>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
 
     </main>
   </div>`;
