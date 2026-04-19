@@ -1435,11 +1435,24 @@ body.firstrun .btn-ask-hero {
 }
 
 /* Steps */
+.mbti-guide {
+  padding: 0 16px;
+  margin-bottom: 32px;
+}
+.mbti-guide-title {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+.mbti-guide-title i {
+  margin-right: 6px;
+  color: var(--accent-light);
+}
 .mbti-steps {
   display: flex;
+  flex-direction: column;
   gap: 12px;
-  padding: 0 16px;
-  margin-bottom: 24px;
 }
 .mbti-step {
   flex: 1;
@@ -1476,31 +1489,21 @@ body.firstrun .btn-ask-hero {
   color: var(--text-secondary);
 }
 
-/* Copy section */
-.mbti-copy-section {
-  padding: 0 16px;
-  margin-bottom: 32px;
-  text-align: center;
-}
-.mbti-copy-section .copy-prompt-box {
-  text-align: left;
-  margin-bottom: 12px;
-}
+/* Posts grid */
 .mbti-copy-btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 14px 36px;
+  gap: 6px;
+  padding: 8px 18px;
   background: linear-gradient(135deg, var(--accent), var(--pink));
   color: white;
   border: none;
   border-radius: var(--radius-full);
   font-family: var(--font-heading);
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
   transition: transform 200ms, box-shadow 200ms;
 }
 .mbti-copy-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(99, 102, 241, 0.45); }
@@ -1513,6 +1516,32 @@ body.firstrun .btn-ask-hero {
 }
 
 /* Posts grid */
+.mbti-compat-yes, .mbti-compat-no {
+  font-size: 12px;
+  line-height: 1.6;
+  margin-top: 6px;
+}
+.mbti-compat-yes { color: var(--text-secondary); }
+.mbti-compat-yes i { color: var(--green); margin-right: 4px; }
+.mbti-compat-no { color: var(--text-muted); }
+.mbti-compat-no i { color: var(--text-muted); margin-right: 4px; }
+.mbti-more-link {
+  margin-top: 16px;
+  text-align: center;
+}
+.mbti-more-link p {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+.mbti-more-link a {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent-light);
+  text-decoration: none;
+  transition: color 200ms;
+}
+.mbti-more-link a:hover { color: var(--accent); text-decoration: underline; }
 .mbti-posts-section {
   padding: 0 16px;
   margin-bottom: 32px;
