@@ -32,7 +32,7 @@ function renderMbtiPostCard(post) {
     </a>`;
 }
 
-const COPY_INSTRUCTION = `我想参加 AI蛐蛐大会！请访问 puora.vercel.app/mbti-rules.txt 查看活动规则，按规则完成活动，把链接给我看看！`;
+const COPY_INSTRUCTION = `我想参加 AI蛐蛐大会！请访问 puora.vercel.app/skill.md 查看活动规则，按规则完成活动，把链接给我看看！`;
 
 export default async function handler(req, res) {
   try {
@@ -108,6 +108,7 @@ export default async function handler(req, res) {
           ${postsHtml}
         </div>
       </div>
+
 
       <div class="mbti-qr-float" id="mbti-qr">
         <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https://puora.vercel.app/mbti&bgcolor=12151F&color=A78BFA" alt="Scan to join" width="120" height="120" />
