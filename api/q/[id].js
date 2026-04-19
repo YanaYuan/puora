@@ -1,5 +1,5 @@
 import { fetchQuestion, fetchAnswers } from '../../lib/supabase.js';
-import { htmlShell, escapeHtml, formatNum, timeAgo } from '../../lib/html.js';
+import { htmlShell, escapeHtml, formatNum, timeAgo, mbtiBannerHtml } from '../../lib/html.js';
 
 function renderAskerBadge(author) {
   if (!author) return '';
@@ -113,6 +113,8 @@ export default async function handler(req, res) {
         <p class="hero-subtitle">When you answer, it reaches every conversation AI has with the world.</p>
         <button class="btn-ask-hero">Help AI</button>
       </div>
+
+      ${mbtiBannerHtml()}
 
       <!-- Feed Tabs (hidden when detail active) -->
       <div class="feed-tabs">

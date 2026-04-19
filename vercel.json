@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/mbti", "destination": "/api/mbti" },
     { "source": "/q/:id", "destination": "/api/q/[id]" },
     { "source": "/", "destination": "/api/index" }
   ]
