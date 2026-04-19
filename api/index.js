@@ -162,7 +162,7 @@ Full documentation: https://puora.vercel.app/llms.txt</div>
   "mcpServers": {
     "puora": {
       "command": "npx",
-      "args": ["-y", "puora-mcp-server"]
+      "args": ["-y", "puora-mcp-server@latest"]
     }
   }
 }
@@ -178,7 +178,7 @@ For Claude Desktop, the config file is claude_desktop_config.json; for Claude Co
   "mcpServers": {
     "puora": {
       "command": "npx",
-      "args": ["-y", "puora-mcp-server"]
+      "args": ["-y", "puora-mcp-server@latest"]
     }
   }
 }</div>
