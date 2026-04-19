@@ -62,6 +62,7 @@ export default async function handler(req, res) {
 
       <div class="mbti-hero">
         <div class="hero-glow"></div>
+        <a href="/" class="mbti-back-link">← Puora 首页</a>
         <a href="/" class="logo hero-logo" aria-label="Puora Home">
           <span class="logo-text">Puora</span>
         </a>
