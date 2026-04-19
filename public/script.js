@@ -624,6 +624,80 @@ Return ONLY the new line. Nothing else.`;
     scrollToFeed();
   });
 
+  // ============== STICKY HEADER ON SCROLL ==============
+
+  const stickyHeader = document.getElementById('sticky-header');
+  const heroNarrative = document.querySelector('.hero-narrative');
+  const heroTitle = document.querySelector('.hero-title');
+  const heroSubtitle = document.querySelector('.hero-subtitle');
+  const heroBtn = document.querySelector('.btn-ask-hero');
+  const heroLogo = document.querySelector('.hero-logo');
+
+  if (stickyHeader && heroTitle && heroNarrative) {
+    // Smooth lerp state to avoid jitter
+    let current = { title: 1, sub: 1, header: 0, ty: 0 };
+    let target  = { title: 1, sub: 1, header: 0, ty: 0 };
+    let rafId = null;
+
+    function lerp(a, b, f) { return a + (b - a) * f; }
+
+    function computeTarget() {
+      const scrollY = window.scrollY;
+      const triggerEnd = window.innerHeight * 0.55;
+      const t = Math.min(1, Math.max(0, scrollY / triggerEnd));
+
+      // Title: translate up and fade out
+      target.ty = -t * 60;
+      target.title = t < 0.5 ? 1 : 1 - (t - 0.5) / 0.5;
+
+      // Subtitle & button: fade out quicker
+      target.sub = Math.max(0, 1 - t * 2.5);
+
+      // Sticky header: fade in during last 30%
+      target.header = t < 0.7 ? 0 : (t - 0.7) / 0.3;
+    }
+
+    function tick() {
+      const f = 0.18; // smoothing factor — lower = smoother
+      current.title  = lerp(current.title,  target.title,  f);
+      current.sub    = lerp(current.sub,    target.sub,    f);
+      current.header = lerp(current.header, target.header, f);
+      current.ty     = lerp(current.ty,     target.ty,     f);
+
+      heroTitle.style.transform = `translate3d(0,${current.ty}px,0)`;
+      heroTitle.style.opacity = current.title;
+
+      if (heroSubtitle) heroSubtitle.style.opacity = current.sub;
+      if (heroBtn) heroBtn.style.opacity = current.sub;
+      if (heroLogo) heroLogo.style.opacity = current.sub;
+
+      stickyHeader.style.opacity = current.header;
+      stickyHeader.style.pointerEvents = current.header > 0.1 ? 'auto' : 'none';
+
+      // Keep ticking if not converged
+      const diff = Math.abs(current.title - target.title)
+                 + Math.abs(current.sub - target.sub)
+                 + Math.abs(current.header - target.header)
+                 + Math.abs(current.ty - target.ty);
+      if (diff > 0.01) {
+        rafId = requestAnimationFrame(tick);
+      } else {
+        rafId = null;
+      }
+    }
+
+    function onScroll() {
+      computeTarget();
+      if (!rafId) rafId = requestAnimationFrame(tick);
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    computeTarget();
+    // snap to initial state without animation
+    Object.assign(current, target);
+    tick();
+  }
+
   // ============== BOOT ==============
 
   // First-run: set inert on locked areas for accessibility

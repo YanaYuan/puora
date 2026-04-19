@@ -671,6 +671,42 @@ a:focus-visible { outline: 2px solid var(--accent-light); outline-offset: 2px; b
 }
 
 /* ============== HERO NARRATIVE ============== */
+/* Sticky header — appears when hero scrolls out of view */
+.sticky-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 48px;
+  padding: 0 24px;
+  background: rgba(11, 13, 20, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sticky-header .logo {
+  flex-shrink: 0;
+}
+
+.sticky-header .logo-text {
+  font-size: 1.1rem;
+}
+
+.sticky-header-title {
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
 .hero-narrative {
   position: relative;
   text-align: center;
@@ -722,6 +758,8 @@ a:focus-visible { outline: 2px solid var(--accent-light); outline-offset: 2px; b
 .hero-title {
   font-family: var(--font-heading); font-size: 44px; font-weight: 700;
   line-height: 1.15; margin-bottom: 16px; position: relative;
+  will-change: transform, opacity;
+  transform: translate3d(0,0,0); /* promote to compositor layer */
   max-width: 560px; padding: 0 24px;
   background: linear-gradient(160deg, #E2E8F0 20%, var(--accent-light) 60%, var(--green) 100%);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;

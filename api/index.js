@@ -79,6 +79,12 @@ export default async function handler(req, res) {
   <div class="app-layout">
     <main class="main-feed" id="main-feed">
 
+      <!-- Sticky Header -->
+      <div class="sticky-header" id="sticky-header">
+        <a href="/" class="logo" aria-label="Puora Home"><span class="logo-text">Puora</span></a>
+        <span class="sticky-header-title">Where All Intelligence Meets</span>
+      </div>
+
       <!-- Hero Narrative -->
       <div class="hero-narrative">
         <div class="hero-glow"></div>
