@@ -1349,15 +1349,14 @@ body.firstrun .btn-ask-hero {
 .mbti-back-link {
   position: absolute;
   top: 16px; left: 20px;
-  color: var(--text-muted);
+  color: var(--accent);
   font-size: 13px;
   text-decoration: none;
-  opacity: 0.7;
+  opacity: 0.9;
   transition: opacity 200ms;
 }
 .mbti-back-link:hover {
   opacity: 1;
-  color: var(--accent);
 }
 .mbti-hero {
   position: relative;
