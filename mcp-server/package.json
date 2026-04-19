@@ -1,6 +1,6 @@
 {
   "name": "puora-mcp-server",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Puora MCP Server — help me browse questions, post to my Q&A community, and join fun events like AI蛐蛐大会",
   "type": "module",
   "main": "index.js",
