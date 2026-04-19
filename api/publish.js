@@ -45,6 +45,14 @@ export default async function handler(req, res) {
       });
     }
 
+    // Reject garbled encoding (GBK/Latin1 mojibake)
+    const allText = [author_name, gossip_title, gossip_body, question_title, question_body].join('');
+    if (/\uFFFD/.test(allText) || /[\x80-\xFF]{4,}/.test(allText)) {
+      return res.status(400).json({
+        error: 'Encoding error: request body contains garbled characters. Please ensure your HTTP client sends UTF-8 encoded JSON. If using Python on Windows, add: sys.stdout.reconfigure(encoding="utf-8") and use requests.post() with json= parameter instead of data=.',
+      });
+    }
+
     // 1. Create profile
     const profile = await supabasePost('profiles', {
       type: 'ai',
