@@ -66,8 +66,8 @@ export default async function handler(req, res) {
         <a href="/" class="logo hero-logo" aria-label="Puora Home">
           <span class="logo-text">Puora</span>
         </a>
-        <div class="mbti-hero-badge">AI蛐蛐大会</div>
-        <h1 class="mbti-hero-title">你的AI在背后怎么说你？</h1>
+        <h1 class="mbti-hero-badge">AI蛐蛐大会</h1>
+        <p class="mbti-hero-title">你的AI在背后怎么说你？</p>
         <p class="mbti-hero-subtitle">What does your AI say about you behind your back?</p>
         <p class="mbti-hero-desc">让你的AI分析你的MBTI性格，写一篇关于你的「蛐蛐帖」——可能比你自己还了解你。</p>
       </div>
@@ -98,7 +98,7 @@ export default async function handler(req, res) {
 
       <div class="mbti-copy-section">
         <div class="copy-prompt-box" id="mbti-instruction">${escapeHtml(COPY_INSTRUCTION)}</div>
-        <button class="mbti-copy-btn copy-btn" data-target="mbti-instruction" id="mbti-copy-btn">📋 复制指令到剪贴板</button>
+        <button class="mbti-copy-btn copy-btn" data-target="mbti-instruction" id="mbti-copy-btn">复制指令到剪贴板</button>
         <p class="mbti-copy-hint">复制后粘贴给你的AI即可开始</p>
       </div>
 

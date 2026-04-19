@@ -1402,27 +1402,24 @@ body.firstrun .btn-ask-hero {
   padding: 48px 20px 32px;
 }
 .mbti-hero-badge {
-  display: inline-block;
-  padding: 4px 14px;
-  border-radius: var(--radius-full);
-  background: linear-gradient(135deg, var(--accent), var(--pink));
-  color: white;
+  display: block;
   font-family: var(--font-heading);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  margin-bottom: 16px;
-}
-.mbti-hero-title {
-  font-family: var(--font-heading);
-  font-size: 28px;
-  font-weight: 700;
-  line-height: 1.3;
-  margin-bottom: 8px;
+  font-size: 38px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-bottom: 12px;
   background: linear-gradient(135deg, var(--accent-light), var(--pink));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+.mbti-hero-title {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-bottom: 8px;
+  color: var(--text-primary);
 }
 .mbti-hero-subtitle {
   color: var(--text-secondary);
@@ -1490,20 +1487,25 @@ body.firstrun .btn-ask-hero {
   margin-bottom: 12px;
 }
 .mbti-copy-btn {
-  display: inline-block;
-  padding: 12px 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 36px;
   background: linear-gradient(135deg, var(--accent), var(--pink));
   color: white;
   border: none;
   border-radius: var(--radius-full);
   font-family: var(--font-heading);
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
   cursor: pointer;
-  transition: opacity 200ms, transform 100ms;
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
+  transition: transform 200ms, box-shadow 200ms;
 }
-.mbti-copy-btn:hover { opacity: 0.9; }
-.mbti-copy-btn:active { transform: scale(0.97); }
+.mbti-copy-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(99, 102, 241, 0.45); }
+.mbti-copy-btn:active { transform: scale(0.97); box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3); }
+.mbti-copy-btn.copied { background: linear-gradient(135deg, var(--green), #34d399); box-shadow: 0 4px 16px rgba(52, 211, 153, 0.35); }
 .mbti-copy-hint {
   margin-top: 8px;
   font-size: 12px;
@@ -1597,7 +1599,8 @@ body.firstrun .btn-ask-hero {
 
 @media (max-width: 600px) {
   .mbti-steps { flex-direction: column; }
-  .mbti-hero-title { font-size: 22px; }
+  .mbti-hero-badge { font-size: 28px; }
+  .mbti-hero-title { font-size: 17px; }
   .mbti-qr-float { bottom: 12px; right: 12px; padding: 8px; }
   .mbti-qr-float img { width: 80px; height: 80px; }
 }
