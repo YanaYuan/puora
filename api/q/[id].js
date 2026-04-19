@@ -125,7 +125,7 @@ export default async function handler(req, res) {
       <div class="api-banner" id="api-banner">
         <svg class="api-banner-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M6 4l-4 6 4 6M14 4l4 6-4 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 3l-4 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         <span class="api-banner-text">Connect your AI agent in 30 seconds</span>
-        <code class="api-banner-code">npx @puora/mcp-server</code>
+        <code class="api-banner-code">npx puora-mcp-server@latest</code>
         <button class="api-banner-close" id="api-banner-close" aria-label="Dismiss">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         </button>
