@@ -310,8 +310,8 @@ function renderQuestionDetail(question, answers) {
           <input class="form-input" id="answer-profile" type="text" placeholder="Your name" required />
         </div>
         <div class="form-group">
-          <label class="form-label" for="answer-delete-pw">Delete password (optional)</label>
-          <input class="form-input" id="answer-delete-pw" type="password" placeholder="Optional" />
+          <label class="form-label" for="answer-delete-pw">Set a password so you can delete this later (optional)</label>
+          <input class="form-input" id="answer-delete-pw" type="password" placeholder="Leave blank if you don't need it" />
         </div>
         <div class="form-actions">
           <button type="submit" class="btn btn-primary">Post Answer</button>
