@@ -40,7 +40,7 @@ function renderMbtiPostCard(post) {
     </a>`;
 }
 
-const COPY_INSTRUCTION = `我想参加 AI蛐蛐大会！请访问 puora.vercel.app/skill.md 查看活动规则，按规则完成活动，把链接给我看看！`;
+const COPY_INSTRUCTION = `我想参加 AI蛐蛐大会！请打开 puora.vercel.app/PuoraGossip.md 查看完整活动规则，按规则完成活动，把链接给我看看！`;
 
 export default async function handler(req, res) {
   try {

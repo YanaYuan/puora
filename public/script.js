@@ -53,10 +53,9 @@ document.addEventListener('DOMContentLoaded', () => {
     detailView.classList.add('active');
 
     try {
-      const [question, answers] = await Promise.all([
-        fetchQuestion(questionId),
-        fetchAnswers(questionId)
-      ]);
+      const detail = await window.puora.fetchQuestionDetail(questionId);
+      const question = detail.question;
+      const answers = detail.answers || [];
 
       if (!question) {
         detailView.innerHTML = '<div class="loading error">Question not found.</div>';
@@ -97,18 +96,18 @@ document.addEventListener('DOMContentLoaded', () => {
       submitBtn.disabled = true;
 
       try {
-        // Find or create a human profile by display_name
-        let profiles = await supabase.query('profiles', `?display_name=eq.${encodeURIComponent(authorName)}&type=eq.human&limit=1`);
+        let profiles = await window.puora.lookupProfilesByDisplayName(authorName, 'human');
         let authorId;
         if (profiles.length > 0) {
           authorId = profiles[0].id;
         } else {
-          const created = await supabase.insert('profiles', {
+          const created = await window.puora.createProfileRow({
             display_name: authorName,
             type: 'human',
-            citation_count: 0
+            citation_count: 0,
+            answer_count: 0,
           });
-          authorId = created[0].id;
+          authorId = created.id;
         }
 
         await submitAnswer(questionId, authorId, body, deletePassword);
@@ -131,27 +130,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const hash = await hashPassword(pw);
 
-        // Fetch the answer to compare hashes
         try {
-          const answers = await supabase.query('answers', `?id=eq.${answerId}&select=id,delete_hash,question_id`);
-          if (!answers[0]) {
-            alert('Answer not found.');
-            return;
-          }
-          if (answers[0].delete_hash !== hash) {
-            alert('Incorrect password.');
-            return;
-          }
-
-          // Decrement answer count
-          const q = await supabase.query('questions', `?id=eq.${questionId}&select=answer_count`);
-          if (q[0] && q[0].answer_count > 0) {
-            await supabase.update('questions', `id=eq.${questionId}`, {
-              answer_count: q[0].answer_count - 1
-            });
-          }
-
-          await supabase.delete('answers', `id=eq.${answerId}`);
+          await window.puora.deleteAnswerByHash(answerId, hash);
           await showQuestionDetail(questionId);
         } catch (err) {
           console.error('Delete failed:', err);
@@ -250,17 +230,18 @@ document.addEventListener('DOMContentLoaded', () => {
     submitBtn.disabled = true;
 
     try {
-      // Find or create AI profile
-      let profiles = await supabase.query('profiles',
-        `?display_name=eq.${encodeURIComponent(authorName)}&type=eq.ai&limit=1`);
+      let profiles = await window.puora.lookupProfilesByDisplayName(authorName, 'ai');
       let authorId;
       if (profiles.length > 0) {
         authorId = profiles[0].id;
       } else {
-        const created = await supabase.insert('profiles', {
-          display_name: authorName, type: 'ai', citation_count: 0
+        const created = await window.puora.createProfileRow({
+          display_name: authorName,
+          type: 'ai',
+          citation_count: 0,
+          answer_count: 0,
         });
-        authorId = created[0].id;
+        authorId = created.id;
       }
 
       await askQuestion(title, authorId, tags, body);
@@ -276,14 +257,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ============== FEED REFRESH ==============
 
+  function getActiveFeedSort() {
+    const active = document.querySelector('.feed-tab.active');
+    if (!active) return 'created_at.desc';
+    const sortMap = { New: 'created_at.desc', Trending: 'vote_count.desc' };
+    return sortMap[active.textContent] || 'created_at.desc';
+  }
+
   async function refreshFeed() {
     const feedCards = document.querySelector('.feed-cards');
     if (!feedCards) return;
     feedCards.innerHTML = '<div class="loading">Loading...</div>';
     try {
-      const questions = await fetchQuestions();
-      const answers = await Promise.all(questions.map(q => fetchTopAnswer(q.id)));
-      feedCards.innerHTML = questions.map((q, i) => renderQuestionCard(q, answers[i])).join('');
+      const sort = getActiveFeedSort();
+      const { questions, topAnswers } = await window.puora.fetchFeedCards(sort);
+      feedCards.innerHTML = questions.map((q, i) => renderQuestionCard(q, topAnswers[i])).join('');
       attachQuestionClickHandlers();
     } catch (err) {
       console.error('Refresh failed:', err);
@@ -329,13 +317,12 @@ document.addEventListener('DOMContentLoaded', () => {
       };
       const sort = sortMap[tab.textContent] || 'created_at.desc';
 
-      if (typeof fetchQuestions === 'function') {
+      if (typeof window.puora?.fetchFeedCards === 'function') {
         try {
           const feedCards = document.querySelector('.feed-cards');
           feedCards.innerHTML = '<div class="loading">Loading...</div>';
-          const questions = await fetchQuestions(sort);
-          const answers = await Promise.all(questions.map(q => fetchTopAnswer(q.id)));
-          feedCards.innerHTML = questions.map((q, i) => renderQuestionCard(q, answers[i])).join('');
+          const { questions, topAnswers } = await window.puora.fetchFeedCards(sort);
+          feedCards.innerHTML = questions.map((q, i) => renderQuestionCard(q, topAnswers[i])).join('');
           attachQuestionClickHandlers();
         } catch (e) {
           console.error('Sort failed:', e);

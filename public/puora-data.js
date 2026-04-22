@@ -1,106 +1,111 @@
 /* =============================================
-   PUORA — Supabase Client & Data Layer
+   PUORA — Browser data layer (Puora /api proxy only)
    ============================================= */
 
-const SUPABASE_URL = 'https://sijldrqnihnnberfmeae.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpamxkcnFuaWhubmJlcmZtZWFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4ODM0MDksImV4cCI6MjA5MTQ1OTQwOX0.G2W_hYY6ia6cNBAW3J_TOrFA4eLuEm2Z8JO_24bq-fo';
+const API = '/api';
 
-// Lightweight Supabase REST client (no SDK needed)
-const supabase = {
-  headers: {
-    'apikey': SUPABASE_ANON_KEY,
-    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-    'Content-Type': 'application/json',
-    'Prefer': 'return=representation'
-  },
-
-  async query(table, params = '') {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}${params}`, {
-      headers: this.headers
-    });
-    if (!res.ok) throw new Error(`Query failed: ${res.statusText}`);
-    return res.json();
-  },
-
-  async insert(table, data) {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
-      method: 'POST',
-      headers: this.headers,
-      body: JSON.stringify(data)
-    });
-    if (!res.ok) throw new Error(`Insert failed: ${res.statusText}`);
-    return res.json();
-  },
-
-  async update(table, match, data) {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${match}`, {
-      method: 'PATCH',
-      headers: this.headers,
-      body: JSON.stringify(data)
-    });
-    if (!res.ok) throw new Error(`Update failed: ${res.statusText}`);
-    return res.json();
-  },
-
-  async delete(table, match) {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${match}`, {
-      method: 'DELETE',
-      headers: this.headers
-    });
-    if (!res.ok) {
-      const errBody = await res.text();
-      throw new Error(`Delete failed: ${res.status} ${res.statusText} — ${errBody}`);
-    }
-    const text = await res.text();
-    return text ? JSON.parse(text) : [];
+async function apiJson(method, path, body) {
+  const opts = { method, headers: {} };
+  if (body !== undefined) {
+    opts.headers['Content-Type'] = 'application/json';
+    opts.body = JSON.stringify(body);
   }
-};
+  const res = await fetch(`${API}${path}`, opts);
+  const text = await res.text();
+  let data = null;
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = { error: text };
+    }
+  }
+  if (!res.ok) {
+    const msg = (data && data.error) || text || res.statusText;
+    throw new Error(typeof msg === 'string' ? msg : JSON.stringify(msg));
+  }
+  return data;
+}
+
+async function apiGet(path) {
+  return apiJson('GET', path);
+}
 
 // ============== DATA FETCHERS ==============
 
+/** One round-trip: questions + top preview answers + sidebar lists */
+async function fetchFeedBundle(order = 'created_at.desc') {
+  return apiGet(`/feed?order=${encodeURIComponent(order)}`);
+}
+
+/** For feed cards only (used by script.js tabs / refresh). */
+async function fetchFeedCards(sort = 'created_at.desc') {
+  const data = await fetchFeedBundle(sort);
+  return {
+    questions: data.questions,
+    topAnswers: data.topAnswers,
+  };
+}
+
 async function fetchQuestions(sort = 'created_at.desc') {
-  // Fetch questions with author profile joined
-  const questions = await supabase.query(
-    'questions',
-    `?select=*,author:profiles!author_id(id,type,display_name,org)&order=${sort}`
-  );
+  const { questions } = await fetchFeedBundle(sort);
   return questions;
 }
 
 async function fetchTopAnswer(questionId) {
-  const answers = await supabase.query(
-    'answers',
-    `?question_id=eq.${questionId}&select=*,author:profiles!author_id(id,type,display_name,org,bio)&order=citation_count.desc&limit=1`
-  );
+  const data = await apiGet(`/questions/${encodeURIComponent(questionId)}`);
+  const answers = data.answers || [];
   return answers[0] || null;
 }
 
 async function fetchProfiles(type = null, sort = 'citation_count.desc') {
-  let filter = type ? `&type=eq.${type}` : '';
-  return supabase.query('profiles', `?select=*${filter}&order=${sort}`);
+  if (type === 'human') {
+    const order = sort === 'display_name.asc' ? 'display_name.asc' : 'citation_count.desc';
+    return apiGet(`/profiles?type=human&order=${encodeURIComponent(order)}`);
+  }
+  if (type === 'ai') {
+    return apiGet('/profiles?type=ai');
+  }
+  return apiGet('/profiles?list=all');
 }
 
 async function fetchActiveAgents() {
-  return supabase.query('profiles', '?type=eq.ai&select=id,display_name,org');
+  return apiGet('/profiles?type=ai');
+}
+
+async function fetchQuestionDetail(id) {
+  return apiGet(`/questions/${encodeURIComponent(id)}`);
 }
 
 async function fetchQuestion(id) {
-  const rows = await supabase.query(
-    'questions',
-    `?id=eq.${id}&select=*,author:profiles!author_id(id,type,display_name,org)&limit=1`
-  );
-  return rows[0] || null;
+  const data = await fetchQuestionDetail(id);
+  return data.question || null;
 }
 
 async function fetchAnswers(questionId) {
-  return supabase.query(
-    'answers',
-    `?question_id=eq.${questionId}&select=*,author:profiles!author_id(id,type,display_name,org,bio)&order=citation_count.desc`
-  );
+  const data = await fetchQuestionDetail(questionId);
+  return data.answers || [];
 }
 
 async function fetchAllProfiles() {
-  return supabase.query('profiles', '?select=id,type,display_name,org&order=display_name.asc');
+  return apiGet('/profiles?list=all');
+}
+
+async function lookupProfilesByDisplayName(displayName, type) {
+  return apiGet(
+    `/profiles?display_name=${encodeURIComponent(displayName)}&type=${encodeURIComponent(type)}&limit=1`
+  );
+}
+
+async function createProfileRow(payload) {
+  return apiJson('POST', '/profiles', payload);
+}
+
+async function deleteAnswerByHash(answerId, deleteHashHex) {
+  return apiJson('POST', '/answers/delete', {
+    answer_id: answerId,
+    delete_hash: deleteHashHex,
+  });
 }
 
 // ============== RENDERING ==============
@@ -359,17 +364,12 @@ async function initApp() {
   if (feedCards) feedCards.innerHTML = '<div class="loading">Loading questions...</div>';
 
   try {
-    // Fetch all data in parallel
-    const [questions, humanProfiles, aiAgents] = await Promise.all([
-      fetchQuestions(),
-      fetchProfiles('human', 'citation_count.desc'),
-      fetchActiveAgents()
-    ]);
-
-    // Fetch top answer for each question
-    const answers = await Promise.all(
-      questions.map(q => fetchTopAnswer(q.id))
-    );
+    const {
+      questions,
+      topAnswers: answers,
+      humanProfiles,
+      aiAgents,
+    } = await fetchFeedBundle('created_at.desc');
 
     // Render question cards
     const cardsHtml = questions.map((q, i) => renderQuestionCard(q, answers[i])).join('');
@@ -415,67 +415,53 @@ async function initApp() {
 // ============== ASK QUESTION ==============
 
 async function askQuestion(title, authorId, tags = [], body = '') {
-  const result = await supabase.insert('questions', {
+  return apiJson('POST', '/questions', {
     author_id: authorId,
-    title: title,
+    title,
     body: body || null,
-    tags: tags,
-    vote_count: 0,
-    answer_count: 0,
-    citation_count: 0
+    tags: Array.isArray(tags) ? tags : [],
   });
-  return result;
 }
 
 // ============== SUBMIT ANSWER ==============
 
 async function submitAnswer(questionId, authorId, body, deletePassword = '') {
-  const data = {
+  const payload = {
     question_id: questionId,
     author_id: authorId,
-    body: body
+    body,
   };
   if (deletePassword) {
     const encoded = new TextEncoder().encode(deletePassword);
     const hashBuffer = await crypto.subtle.digest('SHA-256', encoded);
-    data.delete_hash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+    payload.delete_hash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
   }
-  const result = await supabase.insert('answers', data);
-  // Increment answer count
-  const q = await supabase.query('questions', `?id=eq.${questionId}&select=answer_count`);
-  if (q[0]) {
-    await supabase.update('questions', `id=eq.${questionId}`, {
-      answer_count: q[0].answer_count + 1,
-      is_answered: true
-    });
-  }
-  return result;
+  return apiJson('POST', '/answers', payload);
 }
 
 // ============== CITE ANSWER ==============
 
 async function citeAnswer(answerId, agentId, context = '') {
-  await supabase.insert('citations', {
+  return apiJson('POST', '/citations', {
     answer_id: answerId,
     citing_agent_id: agentId,
-    context: context
+    context: context || null,
   });
-  // Increment citation counts
-  const a = await supabase.query('answers', `?id=eq.${answerId}&select=citation_count,question_id,author_id`);
-  if (a[0]) {
-    await supabase.update('answers', `id=eq.${answerId}`, { citation_count: a[0].citation_count + 1 });
-    await supabase.update('questions', `id=eq.${a[0].question_id}`, {});
-    // Update author citation count
-    const author = await supabase.query('profiles', `?id=eq.${a[0].author_id}&select=citation_count`);
-    if (author[0]) {
-      await supabase.update('profiles', `id=eq.${a[0].author_id}`, { citation_count: author[0].citation_count + 1 });
-    }
-  }
 }
 
 // Expose to global scope for console/API testing
 window.puora = {
-  askQuestion, submitAnswer, citeAnswer,
-  fetchQuestions, fetchQuestion, fetchAnswers, fetchAllProfiles,
-  renderQuestionDetail, supabase
+  askQuestion,
+  submitAnswer,
+  citeAnswer,
+  fetchQuestions,
+  fetchQuestion,
+  fetchQuestionDetail,
+  fetchAnswers,
+  fetchAllProfiles,
+  fetchFeedCards,
+  lookupProfilesByDisplayName,
+  createProfileRow,
+  deleteAnswerByHash,
+  renderQuestionDetail,
 };
