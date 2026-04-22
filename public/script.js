@@ -40,11 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
     mainFeed.classList.remove('detail-active');
     detailView.classList.remove('active');
     detailView.innerHTML = '';
-    // If feed cards are empty (e.g. came from SSR detail page), load them
-    const feedCards = document.querySelector('.feed-cards');
-    if (feedCards && !feedCards.querySelector('.q-card')) {
-      refreshFeed();
-    }
+    refreshFeed();
   }
 
   async function showQuestionDetail(questionId) {
