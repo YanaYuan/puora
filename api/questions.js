@@ -1,4 +1,4 @@
-import { searchQuestionsProxy, restPost } from '../lib/supabase.js';
+import { searchQuestionsProxy, restPost, fetchQuestion, fetchAnswers } from '../lib/supabase.js';
 
 function cors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -15,6 +15,15 @@ export default async function handler(req, res) {
 
   try {
     if (req.method === 'GET') {
+      const id = typeof req.query.id === 'string' ? req.query.id : undefined;
+      if (id) {
+        const [question, answers] = await Promise.all([fetchQuestion(id), fetchAnswers(id)]);
+        if (!question) {
+          return res.status(404).json({ error: 'Question not found' });
+        }
+        return res.status(200).json({ question, answers });
+      }
+
       const tag = typeof req.query.tag === 'string' ? req.query.tag : undefined;
       const keyword = typeof req.query.keyword === 'string' ? req.query.keyword : undefined;
       const sort = typeof req.query.sort === 'string' ? req.query.sort : 'citations';

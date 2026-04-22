@@ -53,7 +53,7 @@ async function fetchQuestions(sort = 'created_at.desc') {
 }
 
 async function fetchTopAnswer(questionId) {
-  const data = await apiGet(`/questions/${encodeURIComponent(questionId)}`);
+  const data = await apiGet(`/questions?id=${encodeURIComponent(questionId)}`);
   const answers = data.answers || [];
   return answers[0] || null;
 }
@@ -74,7 +74,7 @@ async function fetchActiveAgents() {
 }
 
 async function fetchQuestionDetail(id) {
-  return apiGet(`/questions/${encodeURIComponent(id)}`);
+  return apiGet(`/questions?id=${encodeURIComponent(id)}`);
 }
 
 async function fetchQuestion(id) {
@@ -102,7 +102,8 @@ async function createProfileRow(payload) {
 }
 
 async function deleteAnswerByHash(answerId, deleteHashHex) {
-  return apiJson('POST', '/answers/delete', {
+  return apiJson('POST', '/answers', {
+    action: 'delete',
     answer_id: answerId,
     delete_hash: deleteHashHex,
   });
