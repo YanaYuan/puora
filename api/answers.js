@@ -1,4 +1,5 @@
 import { restPost, supabaseRestGet, restPatch, restDelete } from '../lib/supabase.js';
+import { validateEncoding } from '../lib/encoding.js';
 
 function cors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -34,6 +35,10 @@ async function handleCreate(req, res) {
         error: 'Missing required fields',
         required: ['question_id', 'author_id', 'body'],
       });
+    }
+    const enc = validateEncoding({ body }, ['body']);
+    if (!enc.ok) {
+      return res.status(400).json({ error: enc.error, hint: enc.hint });
     }
 
     const payload = {

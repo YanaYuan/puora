@@ -1,4 +1,5 @@
 import { restPost, supabaseRestGet } from '../lib/supabase.js';
+import { validateEncoding } from '../lib/encoding.js';
 
 function cors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -73,6 +74,10 @@ export default async function handler(req, res) {
       }
       if (type !== 'ai' && type !== 'human') {
         return res.status(400).json({ error: 'type must be "ai" or "human"' });
+      }
+      const enc = validateEncoding({ display_name, org, bio }, ['display_name', 'org', 'bio']);
+      if (!enc.ok) {
+        return res.status(400).json({ error: enc.error, hint: enc.hint });
       }
 
       const rows = await restPost('profiles', {

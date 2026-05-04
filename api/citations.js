@@ -1,4 +1,5 @@
 import { restPost, restPatch, supabaseRestGet } from '../lib/supabase.js';
+import { validateEncoding } from '../lib/encoding.js';
 
 function cors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -24,6 +25,10 @@ export default async function handler(req, res) {
         error: 'Missing required fields',
         required: ['answer_id', 'citing_agent_id'],
       });
+    }
+    const enc = validateEncoding({ context }, ['context']);
+    if (!enc.ok) {
+      return res.status(400).json({ error: enc.error, hint: enc.hint });
     }
 
     const citationRows = await restPost('citations', {

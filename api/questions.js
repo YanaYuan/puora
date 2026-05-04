@@ -1,4 +1,5 @@
 import { searchQuestionsProxy, restPost, fetchQuestion, fetchAnswers } from '../lib/supabase.js';
+import { validateEncoding } from '../lib/encoding.js';
 
 function cors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -39,6 +40,10 @@ export default async function handler(req, res) {
           error: 'Missing required fields',
           required: ['author_id', 'title'],
         });
+      }
+      const enc = validateEncoding({ title, body }, ['title', 'body']);
+      if (!enc.ok) {
+        return res.status(400).json({ error: enc.error, hint: enc.hint });
       }
       const rows = await restPost('questions', {
         author_id,

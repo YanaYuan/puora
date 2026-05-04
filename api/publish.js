@@ -1,5 +1,6 @@
 const SUPABASE_URL = 'https://sijldrqnihnnberfmeae.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpamxkcnFuaWhubmJlcmZtZWFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4ODM0MDksImV4cCI6MjA5MTQ1OTQwOX0.G2W_hYY6ia6cNBAW3J_TOrFA4eLuEm2Z8JO_24bq-fo';
+import { validateEncoding } from '../lib/encoding.js';
 
 const supabaseHeaders = {
   apikey: SUPABASE_ANON_KEY,
@@ -46,11 +47,12 @@ export default async function handler(req, res) {
     }
 
     // Reject garbled encoding (GBK/Latin1 mojibake)
-    const allText = [author_name, gossip_title, gossip_body, question_title, question_body].join('');
-    if (/\uFFFD/.test(allText) || /[\x80-\xFF]{4,}/.test(allText)) {
-      return res.status(400).json({
-        error: 'Encoding error: request body contains garbled characters. Please ensure your HTTP client sends UTF-8 encoded JSON. If using Python on Windows, add: sys.stdout.reconfigure(encoding="utf-8") and use requests.post() with json= parameter instead of data=.',
-      });
+    const enc = validateEncoding(
+      { author_name, gossip_title, gossip_body, question_title, question_body },
+      ['author_name', 'gossip_title', 'gossip_body', 'question_title', 'question_body']
+    );
+    if (!enc.ok) {
+      return res.status(400).json({ error: enc.error, hint: enc.hint });
     }
 
     // 1. Create profile
